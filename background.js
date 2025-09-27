@@ -179,21 +179,40 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
                             const div = document.createElement('div');
                             div.style.cssText = `
                                 position: fixed;
-                                top: 20px;
-                                right: 20px;
-                                background: #4CAF50;
+                                top: 50%;
+                                left: 50%;
+                                transform: translate(-50%, -50%);
+                                background: rgba(76, 175, 80, 0.95);
                                 color: white;
-                                padding: 12px 20px;
-                                border-radius: 4px;
+                                padding: 16px 32px;
+                                border-radius: 8px;
                                 z-index: 999999;
                                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-                                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-                                transition: opacity 0.3s ease-in-out;
+                                font-size: 16px;
+                                font-weight: 500;
+                                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                                transition: all 0.3s ease-in-out;
+                                opacity: 0;
+                                transform-origin: center;
+                                text-align: center;
+                                min-width: 200px;
                             `;
                             div.textContent = 'Stack copied and cleared!';
                             document.body.appendChild(div);
+                            
+                            // Trigger animation
+                            requestAnimationFrame(() => {
+                                div.style.opacity = '1';
+                                div.style.transform = 'translate(-50%, -50%) scale(1.1)';
+                                setTimeout(() => {
+                                    div.style.transform = 'translate(-50%, -50%) scale(1)';
+                                }, 100);
+                            });
+
+                            // Remove after delay with fade out animation
                             setTimeout(() => {
                                 div.style.opacity = '0';
+                                div.style.transform = 'translate(-50%, -50%) scale(0.9)';
                                 setTimeout(() => div.remove(), 300);
                             }, 1500);
                         }
