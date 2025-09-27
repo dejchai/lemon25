@@ -1,6 +1,44 @@
 # AI Stacks Collector - Release Notes
 
-## Version 1.0.0 (September 27, 2025)
+## [1.1.0] - 2025-09-27
+
+### Added
+- Automatic stack clearing after copy operations
+- Centralized notification system
+  - Centered position on screen
+  - Modern animation effects
+  - Improved visibility and user feedback
+- Verification system for stack operations
+- Graceful fallbacks for popup interactions
+
+### Enhanced
+- Copy Stack Workflow
+  - Sequential operation handling
+  - Improved reliability for clipboard operations
+  - Better error recovery mechanisms
+- Popup Management
+  - Robust state handling
+  - Improved visibility control
+  - Better interaction with chrome.action API
+- Error Handling
+  - Comprehensive error catching
+  - Graceful degradation
+  - Detailed logging for debugging
+
+### Fixed
+- Popup display issues in various contexts
+- Race conditions in stack operations
+- Edge cases in clipboard operations
+- Popup state synchronization
+
+### Technical
+- Improved message passing architecture
+- Added operation verification layer
+- Enhanced logging system
+- Implemented staged operation sequences
+- Better state management for popups
+
+## [1.0.0] - 2025-09-27
 
 ### Overview
 AI Stacks Collector is a Chrome extension designed to enhance productivity when working with multiple AI chat platforms. It automatically captures and organizes copied text from various AI providers, making it easy to collect and manage responses.
