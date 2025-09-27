@@ -39,6 +39,17 @@ document.addEventListener('DOMContentLoaded', () => {
         return provider.toLowerCase().replace(/\s+/g, '');
     }
 
+    function getProviderLogo(provider) {
+        const providerName = provider.toLowerCase().replace(/\s+/g, '');
+        const logoMap = {
+            'chatgpt': 'icons/chatgpt.svg',
+            'gemini': 'icons/gemini.svg',
+            'claude': 'icons/claude.svg',
+            'copilot': 'icons/copilot.svg'
+        };
+        return logoMap[providerName] || null;
+    }
+
     /**
      * Creates a DOM element for a stack item with preview and metadata
      * @param {Object} item - The stack item to display
@@ -50,20 +61,36 @@ document.addEventListener('DOMContentLoaded', () => {
     function createStackItem(item) {
         log('Creating stack item:', item);
         const div = document.createElement('div');
-        div.className = 'stack-item';
+        const providerClass = getProviderClass(item.provider);
+        const providerLogo = getProviderLogo(item.provider);
+        
+        div.className = `stack-item ${providerClass} entering`;
         
         // Create preview (FR6.0)
         const preview = item.text.length > 50 ? 
             item.text.substring(0, 50) + '...' : 
             item.text;
+        
+        // Create logo HTML if available
+        const logoHtml = providerLogo ? 
+            `<img src="${providerLogo}" alt="${item.provider}" class="provider-logo">` : 
+            '';
             
         div.innerHTML = `
             <p class="item-content">${preview}</p>
             <div class="item-meta">
-                <span class="provider-tag ${getProviderClass(item.provider)}">${item.provider}</span>
+                <span class="provider-tag ${providerClass}">
+                    ${logoHtml}
+                    ${item.provider}
+                </span>
                 <span class="timestamp">${formatDate(item.timestamp)}</span>
             </div>
         `;
+
+        // Remove entering class after animation
+        setTimeout(() => {
+            div.classList.remove('entering');
+        }, 500);
 
         // Click-to-copy functionality (FR9.0)
         div.addEventListener('click', async () => {
@@ -178,9 +205,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Event listeners
-    exportBtn.addEventListener('click', exportStack);
-    clearBtn.addEventListener('click', clearStack);
+    // Add button animation helper
+    function addButtonClickAnimation(btn, callback) {
+        btn.addEventListener('click', (e) => {
+            // Add clicked class for ripple effect
+            btn.classList.add('clicked');
+            setTimeout(() => {
+                btn.classList.remove('clicked');
+            }, 600);
+            
+            // Call the original callback
+            callback();
+        });
+    }
+
+    // Event listeners with animations
+    addButtonClickAnimation(exportBtn, exportStack);
+    addButtonClickAnimation(clearBtn, clearStack);
 
     // Listen for stack updates
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
