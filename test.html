@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>AI Stacks Collector Test Page</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-case {
+            border: 1px solid #ddd;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .test-steps {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .code-block {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        button {
+            padding: 8px 16px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .copy-test {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px dashed #aaa;
+            background: #fff;
+        }
+    </style>
+</head>
+<body>
+    <h1>AI Stacks Collector Test Page</h1>
+    
+    <div class="test-case">
+        <h2>Test Case 1: Basic Copy Function (FR1.0)</h2>
+        <div class="test-steps">
+            <p>Steps:</p>
+            <ol>
+                <li>Select the text below</li>
+                <li>Press Ctrl+C or ⌘+C</li>
+                <li>Check the extension popup</li>
+            </ol>
+        </div>
+        <div class="copy-test">
+            This is a test message from ChatGPT. The quick brown fox jumps over the lazy dog.
+        </div>
+    </div>
+
+    <div class="test-case">
+        <h2>Test Case 2: Custom Copy Button (C4)</h2>
+        <div class="test-steps">
+            <p>Steps:</p>
+            <ol>
+                <li>Click the "Copy" button below</li>
+                <li>Check the extension popup</li>
+            </ol>
+        </div>
+        <div class="copy-test">
+            <pre id="codeBlock">function testFunction() {
+    console.log("Hello from AI Stacks!");
+}</pre>
+            <button aria-label="Copy code">Copy</button>
+        </div>
+    </div>
+
+    <div class="test-case">
+        <h2>Test Case 3: Stack Operations</h2>
+        <div class="test-steps">
+            <p>Steps:</p>
+            <ol>
+                <li>Copy multiple text selections</li>
+                <li>Open the extension popup</li>
+                <li>Try clicking on individual items (FR9.0)</li>
+                <li>Test the Export button (FR8.0)</li>
+                <li>Test the Clear button (FR7.0)</li>
+            </ol>
+        </div>
+        <div class="copy-test">
+            First test message for the stack.
+        </div>
+        <div class="copy-test">
+            Second test message with different content.
+        </div>
+        <div class="copy-test">
+            Third test message to verify stack ordering.
+        </div>
+    </div>
+
+    <script>
+        // Add functionality to the copy button
+        document.querySelector('button[aria-label="Copy code"]').addEventListener('click', () => {
+            const code = document.getElementById('codeBlock').textContent;
+            navigator.clipboard.writeText(code);
+        });
+    </script>
+</body>
+</html>
