@@ -12,7 +12,8 @@
             margin: 0;
             padding: 16px;
             font-family: system-ui, -apple-system, sans-serif;
-            background: #f5f5f5;
+            background: #004052;
+            color: #fff;
             box-sizing: border-box;
         }
 
@@ -21,13 +22,17 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 16px;
+            background: #006B6B;
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
         .title {
             font-size: 20px;
             font-weight: 600;
             margin: 0;
-            color: #333;
+            color: #fff;
         }
 
         .actions {
@@ -46,65 +51,40 @@
             overflow: hidden;
         }
 
-        .btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-            box-shadow: none;
-        }
-
-        .btn::after {
-            content: '';
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            background: rgba(255,255,255,0.2);
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-
-        .btn:active::after {
-            opacity: 1;
-        }
-
         .btn-primary {
-            background-color: #007bff;
-            color: white;
+            background: #FF9F46;
+            color: #004052;
         }
 
         .btn-primary:hover {
-            background-color: #0056b3;
-        }
-
-        .btn-primary:hover {
-            background-color: #0056b3;
+            background: #FF5E2C;
         }
 
         .btn-danger {
-            background-color: #dc3545;
-            color: white;
+            background: #4C4C4C;
+            color: #fff;
         }
 
         .btn-danger:hover {
-            background-color: #c82333;
+            background: #FF5E2C;
         }
 
         .stack-list {
             margin-top: 16px;
             border-radius: 8px;
-            background: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background: #2D7164;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
 
         .stack-item {
             padding: 16px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid #006B6B;
             position: relative;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .stack-item:hover {
+            background: #006B6B;
         }
 
         .stack-item:last-child {
@@ -113,7 +93,7 @@
 
         .item-content {
             margin: 0;
-            color: #444;
+            color: #fff;
             white-space: pre-wrap;
             word-break: break-word;
             line-height: 1.4;
@@ -125,50 +105,39 @@
             align-items: center;
             margin-top: 8px;
             font-size: 12px;
-            color: #666;
+            color: #FF9F46;
         }
 
         .provider-tag {
             padding: 4px 8px;
             border-radius: 12px;
             font-weight: 500;
-        }
-
-        .provider-tag.chatgpt {
-            background-color: #e7f5ef;
-            color: #10a37f;
-        }
-
-        .provider-tag.claude {
-            background-color: #f0f0f0;
-            color: #7f7f7f;
-        }
-
-        .provider-tag.gemini {
-            background-color: #e8f0fe;
-            color: #1a73e8;
+            background: #004052;
+            color: #FF9F46;
         }
 
         .empty-state {
             text-align: center;
             padding: 32px 16px;
-            color: #666;
+            color: #FF9F46;
         }
 
         .empty-icon {
             font-size: 48px;
             margin-bottom: 16px;
+            color: #FF9F46;
         }
 
         .empty-text {
             margin: 0;
             font-size: 16px;
+            color: #fff;
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <img src="icons/icon32.png" alt="AI Stacks Icon" style="width:32px;height:32px;margin-right:12px;">
+        <img src="icons/icon-32.png" alt="AI Stacks Icon" style="width:32px;height:32px;margin-right:12px;">
         <h1 class="title" style="flex:1;">AI Stacks</h1>
         <div class="actions">
             <button id="exportBtn" class="btn btn-primary">Export</button>
