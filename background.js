@@ -74,6 +74,9 @@ async function addToStack(item) {
         // Save updated stack
         await chrome.storage.local.set({ stack });
         
+        // Show the popup
+        await chrome.action.openPopup();
+        
         // Notify popup about the update
         chrome.runtime.sendMessage({ 
             action: 'stackUpdated', 
@@ -82,7 +85,7 @@ async function addToStack(item) {
             // Ignore error if popup is not open
         });
         
-        log('Item added. New stack size:', stack.length);
+        log('Item added and popup shown. New stack size:', stack.length);
         return true;
     } catch (error) {
         console.error('[AI Stacks BG] Error adding item to stack:', error);
