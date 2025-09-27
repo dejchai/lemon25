@@ -190,18 +190,39 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function clearStack() {
+        const clearBtn = document.getElementById('clearBtn');
+        if (!clearBtn) return;
+
         log('Clearing stack');
+        const originalText = clearBtn.textContent;
+        clearBtn.textContent = 'Clearing...';
+        clearBtn.disabled = true;
+
         try {
             const response = await chrome.runtime.sendMessage({ action: 'clearStack' });
             if (response.success) {
                 stack = [];
                 updateStackDisplay();
+                clearBtn.textContent = 'Cleared!';
+                clearBtn.style.backgroundColor = '#4CAF50';
+                setTimeout(() => {
+                    clearBtn.textContent = originalText;
+                    clearBtn.style.backgroundColor = '';
+                    clearBtn.disabled = false;
+                }, 1500);
                 log('Stack cleared successfully');
             } else {
-                console.error('Error clearing stack:', response.error);
+                throw new Error(response.error || 'Failed to clear stack');
             }
         } catch (error) {
             console.error('Error clearing stack:', error);
+            clearBtn.textContent = 'Error';
+            clearBtn.style.backgroundColor = '#ff5e2c';
+            setTimeout(() => {
+                clearBtn.textContent = originalText;
+                clearBtn.style.backgroundColor = '';
+                clearBtn.disabled = false;
+            }, 1500);
         }
     }
 

@@ -167,48 +167,66 @@ function handleCopy() {
 function handleCustomCopyClick(event) {
     try {
         // Platform-specific copy button detection
-        const button = event.target.closest('button[aria-label*="copy" i], button[title*="copy" i], button[data-copy], .copy-button, button.copy-code-button, button[aria-label="Copy response"], button[aria-label="Copy code"], button.cursor-pointer, [class*="copy-button"], [data-testid="action-bar-copy"]');
+        let button = event.target.closest('button[aria-label*="copy" i], button[title*="copy" i], button[data-copy], .copy-button, button.copy-code-button, button[aria-label="Copy response"], button[aria-label="Copy code"], button.cursor-pointer, [class*="copy-button"], [data-testid="action-bar-copy"]');
         if (!button) {
+            log('[AI Stacks CS] No copy button detected.');
             return;
         }
-        
-        // Check for duplicate clicks using WeakMap
-        const now = Date.now();
-        const lastCopyTime = copyTimestamps.get(button) || 0;
-        if (now - lastCopyTime < 2000) {
-            log('Skipping duplicate copy');
+        log('[AI Stacks CS] Copy button detected');
+
+        // Get the provider based on hostname
+        const provider = getCurrentProvider();
+        log('[AI Stacks CS] Detected provider:', provider);
+
+        // Prevent duplicate copies
+        let lastCopyTimestamp = button.getAttribute('data-last-copy');
+        let currentTime = Date.now();
+        if (lastCopyTimestamp && (currentTime - parseInt(lastCopyTimestamp)) < 2000) {
+            log('[AI Stacks CS] Skipping duplicate copy attempt');
             return;
         }
-        copyTimestamps.set(button, now);
+        button.setAttribute('data-last-copy', currentTime.toString());
 
         let extractedText = '';
 
+        let message = '';
+        let lastCopyTimestamp = button.getAttribute('data-last-copy');
+        let currentTime = Date.now();
+        
+        // Prevent duplicate copies within 2 seconds
+        if (lastCopyTimestamp && (currentTime - parseInt(lastCopyTimestamp)) < 2000) {
+            log('[AI Stacks CS] Skipping duplicate copy attempt');
+            return;
+        }
+        button.setAttribute('data-last-copy', currentTime.toString());
+
         // ChatGPT
         if (window.location.hostname === 'chat.openai.com' || window.location.hostname === 'chatgpt.com') {
-            // Try to find code block first if copy button is within code block
-            const codeBlock = button.closest('pre');
-            if (codeBlock) {
-                extractedText = codeBlock.textContent.trim();
-            } else {
-                // Try to find the message container
-                let container = button.closest('[data-message-author-role="assistant"], [data-message-author-role="user"]');
-                if (!container) {
-                    container = button.closest('.markdown, .prose, [role="presentation"]');
-                }
+            let container = button.closest('[data-message-author-role="assistant"], [data-message-author-role="user"]');
+            
+            // If not found, try broader container search
+            if (!container) {
+                container = button.closest('.markdown, .prose, [role="presentation"]');
+            }
 
-                if (container) {
-                    log('[AI Stacks CS] ChatGPT message container detected');
-                    
+            if (container) {
+                log('[AI Stacks CS] ChatGPT message container detected');
+                
+                // Try to find code block first if copy button is within code block
+                const codeBlock = button.closest('pre');
+                if (codeBlock) {
+                    message = codeBlock.textContent.trim();
+                } else {
                     // First try to find the markdown content
                     const markdownDiv = container.querySelector('.markdown, .prose');
                     if (markdownDiv) {
-                        extractedText = markdownDiv.textContent.trim();
+                        message = markdownDiv.textContent.trim();
                     }
                     
-                    // If no markdown content, try structured elements
-                    if (!extractedText) {
+                    // If no markdown div or empty content, try structured elements
+                    if (!message) {
                         const contentElements = container.querySelectorAll('p, pre, code, ol, ul, li, table, blockquote, h1, h2, h3, h4, h5, h6');
-                        extractedText = Array.from(contentElements)
+                        message = Array.from(contentElements)
                             .map(el => el.textContent)
                             .filter(t => {
                                 const cleaned = t.trim();
@@ -227,7 +245,7 @@ function handleCustomCopyClick(event) {
             const responseContainer = button.closest('[role="region"], .response-container');
             if (responseContainer) {
                 const contentElements = responseContainer.querySelectorAll('p, pre, code, ol, ul, table, [role="presentation"] > div');
-                extractedText = Array.from(contentElements).map(el => el.textContent).join('\n').trim();
+                message = Array.from(contentElements).map(el => el.textContent).join('\n').trim();
             }
         }
         // Claude
@@ -243,7 +261,7 @@ function handleCustomCopyClick(event) {
                 const clone = container.cloneNode(true);
                 const buttonsToRemove = clone.querySelectorAll('button, [role="button"]');
                 buttonsToRemove.forEach(btn => btn.remove());
-                extractedText = clone.textContent.trim();
+                text = clone.textContent.trim();
             }
         }
         // Copilot
@@ -259,22 +277,22 @@ function handleCustomCopyClick(event) {
                 const clone = container.cloneNode(true);
                 const buttonsToRemove = clone.querySelectorAll('button, [role="button"]');
                 buttonsToRemove.forEach(btn => btn.remove());
-                extractedText = clone.textContent.trim();
+                text = clone.textContent.trim();
             }
         }
 
         // Fallback: code block or parent
-        if (!extractedText) {
+        if (!text) {
             const codeBlock = button.closest('pre') || button.parentElement;
             if (codeBlock) {
-                extractedText = codeBlock.textContent.trim();
+                text = codeBlock.textContent.trim();
             }
         }
 
-        if (extractedText) {
+        if (text) {
             log('Custom copy button clicked.');
             const item = {
-                text: extractedText,
+                text: text,
                 provider: getCurrentProvider(),
                 timestamp: new Date().toISOString()
             };

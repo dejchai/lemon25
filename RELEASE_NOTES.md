@@ -30,11 +30,14 @@ AI Stacks Collector is a Chrome extension designed to enhance productivity when 
   - One-click stack clearing
 
 ### Recent Improvements
+- Implemented advanced duplicate prevention system using WeakMap
+- Enhanced content extraction logic for all platforms
+- Added special handling for code blocks across all providers
+- Improved clipboard operations with modern APIs
+- Fixed variable consistency issues
 - Added support for all ChatGPT domains with smart domain matching
 - Enhanced message extraction logic for better accuracy
 - Improved provider detection with partial domain matching
-- Added detailed logging for debugging
-- Fixed "Web Source" misidentification issue
 
 ### Technical Details
 - Built with Manifest V3
