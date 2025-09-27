@@ -24,7 +24,7 @@ function createContextMenu() {
             chrome.contextMenus.create({
                 id: 'copyStack',
                 parentId: 'aiStacksMenu',
-                title: 'Copy Stack to Clipboard',
+                title: 'Copy Stack',
                 contexts: ['all']
             });
 
@@ -143,7 +143,15 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
                     },
                     args: [text]
                 });
-                log('Stack copied to clipboard');
+                // Clear the stack after successful copy
+                await chrome.storage.local.set({ stack: [] });
+                // Notify popup about cleared stack
+                try {
+                    await chrome.runtime.sendMessage({ action: 'stackUpdated', stack: [] });
+                } catch (e) {
+                    // Ignore error if popup is not open
+                }
+                log('Stack copied to clipboard and cleared');
             } else {
                 throw new Error('No active tab found');
             }

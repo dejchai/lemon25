@@ -184,6 +184,9 @@ document.addEventListener('DOMContentLoaded', () => {
             URL.revokeObjectURL(url);
 
             log('Stack exported successfully');
+            
+            // Clear the stack after successful export
+            await clearStack();
         } catch (error) {
             console.error('Error exporting stack:', error);
         }
