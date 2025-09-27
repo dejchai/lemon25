@@ -186,7 +186,12 @@ document.addEventListener('DOMContentLoaded', () => {
             log('Stack exported successfully');
             
             // Clear the stack after successful export
+            log('Initiating stack clear after export...');
             await clearStack();
+            
+            // Verify stack is cleared
+            const result = await chrome.storage.local.get('stack');
+            log('Stack status after export clear:', result.stack?.length === 0 ? 'Empty' : 'Not empty');
         } catch (error) {
             console.error('Error exporting stack:', error);
         }

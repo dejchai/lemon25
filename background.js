@@ -74,18 +74,31 @@ async function addToStack(item) {
         // Save updated stack
         await chrome.storage.local.set({ stack });
         
-        // Show the popup
-        await chrome.action.openPopup();
+        // Try to show and update popup
+        try {
+            // Notify popup about the update first
+            await chrome.runtime.sendMessage({ 
+                action: 'stackUpdated', 
+                stack: stack 
+            }).catch(() => {
+                // Popup might not be open yet
+                log('Initial popup update skipped - popup not open');
+            });
+
+            // Then try to show popup if needed
+            try {
+                await chrome.action.openPopup();
+                log('Popup shown successfully');
+            } catch (popupError) {
+                log('Could not show popup automatically:', popupError.message);
+                // This is expected in some contexts and shouldn't affect functionality
+            }
+        } catch (e) {
+            // Log but don't throw - popup issues shouldn't fail the operation
+            log('Popup interaction had some issues:', e.message);
+        }
         
-        // Notify popup about the update
-        chrome.runtime.sendMessage({ 
-            action: 'stackUpdated', 
-            stack: stack 
-        }).catch(() => {
-            // Ignore error if popup is not open
-        });
-        
-        log('Item added and popup shown. New stack size:', stack.length);
+        log('Item added successfully. New stack size:', stack.length);
         return true;
     } catch (error) {
         console.error('[AI Stacks BG] Error adding item to stack:', error);
@@ -125,7 +138,8 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
             
             // Use executeScript to copy in the context of the active tab
             if (tab.id) {
-                await chrome.scripting.executeScript({
+                // Execute copy operation and get the result
+                const copyResult = await chrome.scripting.executeScript({
                     target: { tabId: tab.id },
                     func: (textToCopy) => {
                         const textarea = document.createElement('textarea');
@@ -135,8 +149,8 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
                         document.body.appendChild(textarea);
                         textarea.select();
                         try {
-                            document.execCommand('copy');
-                            return true;
+                            const success = document.execCommand('copy');
+                            return success;
                         } catch (err) {
                             console.error('Failed to copy:', err);
                             return false;
@@ -146,27 +160,105 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
                     },
                     args: [text]
                 });
-                // Clear the stack after successful copy
-                await chrome.storage.local.set({ stack: [] });
-                // Notify popup about cleared stack
-                try {
-                    await chrome.runtime.sendMessage({ action: 'stackUpdated', stack: [] });
-                } catch (e) {
-                    // Ignore error if popup is not open
+
+                // Check if copy was successful
+                if (copyResult && copyResult[0] && copyResult[0].result === true) {
+                    log('Stack successfully copied to clipboard');
+                    
+                    // First ensure the copy operation is complete
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    
+                    // Clear the stack
+                    log('Clearing stack...');
+                    await chrome.storage.local.set({ stack: [] });
+                    
+                    // Show notification about copy and clear
+                    await chrome.scripting.executeScript({
+                        target: { tabId: tab.id },
+                        func: () => {
+                            const div = document.createElement('div');
+                            div.style.cssText = `
+                                position: fixed;
+                                top: 20px;
+                                right: 20px;
+                                background: #4CAF50;
+                                color: white;
+                                padding: 12px 20px;
+                                border-radius: 4px;
+                                z-index: 999999;
+                                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+                                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+                                transition: opacity 0.3s ease-in-out;
+                            `;
+                            div.textContent = 'Stack copied and cleared!';
+                            document.body.appendChild(div);
+                            setTimeout(() => {
+                                div.style.opacity = '0';
+                                setTimeout(() => div.remove(), 300);
+                            }, 1500);
+                        }
+                    });
+
+                    // Update popup with cleared state
+                    try {
+                        // First try to update existing popup
+                        await chrome.runtime.sendMessage({ action: 'stackUpdated', stack: [] })
+                            .catch(() => log('Initial popup update skipped - popup not open'));
+                        
+                        // Then try to show popup if it wasn't open
+                        try {
+                            await chrome.action.openPopup();
+                            log('Popup shown with cleared state');
+                        } catch (popupError) {
+                            log('Could not show popup automatically:', popupError.message);
+                            // This is expected in some contexts and shouldn't affect functionality
+                        }
+                    } catch (e) {
+                        // Log but don't throw - popup issues shouldn't fail the operation
+                        log('Popup interaction had some issues:', e.message);
+                    }
+                    
+                    log('Copy to clipboard, clear, and update completed successfully');
+                    try {
+                        await chrome.runtime.sendMessage({ action: 'stackUpdated', stack: [] });
+                        log('Popup updated with cleared stack');
+                    } catch (e) {
+                        log('Could not update popup:', e.message);
+                        // Try to show popup again if update failed
+                        try {
+                            await chrome.action.openPopup();
+                            log('Reopened popup after update failure');
+                        } catch (popupError) {
+                            log('Could not reopen popup:', popupError.message);
+                        }
+                    }
+                    log('Stack copied to clipboard and cleared');
+                } else {
+                    throw new Error('Failed to copy stack to clipboard');
                 }
-                log('Stack copied to clipboard and cleared');
             } else {
                 throw new Error('No active tab found');
             }
         } else if (info.menuItemId === 'clearStack') {
-            await chrome.storage.local.set({ stack: [] });
-            // Try to notify popup, but don't throw if it fails
+            log('Clearing stack from context menu...');
             try {
-                await chrome.runtime.sendMessage({ action: 'stackUpdated', stack: [] });
-            } catch (e) {
-                // Ignore error if popup is not open
+                await chrome.storage.local.set({ stack: [] });
+                // Verify the clear operation
+                const verifyResult = await chrome.storage.local.get('stack');
+                log('Stack status after context menu clear:', verifyResult.stack?.length === 0 ? 'Empty' : 'Not empty');
+                
+                // Try to notify popup, but don't throw if it fails
+                try {
+                    await chrome.runtime.sendMessage({ action: 'stackUpdated', stack: [] });
+                    log('Popup notified of stack clear');
+                } catch (e) {
+                    log('Popup not open, notification skipped');
+                }
+                log('Stack cleared successfully from context menu');
+            } catch (error) {
+                console.error('[AI Stacks BG] Error clearing stack from context menu:', error);
+                throw error; // Propagate error for UI notification
             }
-            log('Stack cleared');
         }
     } catch (error) {
         console.error('[AI Stacks BG] Error handling context menu click:', error);
@@ -202,15 +294,19 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 // Handle messages from popup and content scripts
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === 'clearStack') {
+        log('Handling clearStack message from popup...');
         // Handle clear stack request
         chrome.storage.local.set({ stack: [] })
-            .then(() => {
-                // No need to notify other listeners since the popup will update itself
+            .then(async () => {
+                // Verify the clear operation
+                const verifyResult = await chrome.storage.local.get('stack');
+                log('Stack status after message clear:', verifyResult.stack?.length === 0 ? 'Empty' : 'Not empty');
+                
                 sendResponse({ success: true });
-                log('Stack cleared successfully');
+                log('Stack cleared successfully from popup request');
             })
             .catch(error => {
-                console.error('[AI Stacks BG] Error clearing stack:', error);
+                console.error('[AI Stacks BG] Error clearing stack from popup:', error);
                 sendResponse({ success: false, error: error.message });
             });
         return true; // Will respond asynchronously
