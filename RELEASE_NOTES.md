@@ -1,5 +1,18 @@
 # AI Stacks Collector - Release Notes
 
+## [1.1.1] - 2025-10-02
+
+### Fixed
+- Addressed Unchecked runtime.lastError warnings in extension background script
+- Improved async message handling with proper return true usage
+- Added error checks before port.postMessage to prevent port closed errors
+- Enhanced reliability for communication between content scripts and background
+
+### Technical
+- Refactored message listeners for Chrome extension best practices
+- Minimal code changes for maximum compatibility
+- Improved logging for error diagnosis
+
 ## [1.1.0] - 2025-09-27
 
 ### Added

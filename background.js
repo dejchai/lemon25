@@ -317,18 +317,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         // Handle clear stack request
         chrome.storage.local.set({ stack: [] })
             .then(async () => {
-                // Verify the clear operation
-                const verifyResult = await chrome.storage.local.get('stack');
-                log('Stack status after message clear:', verifyResult.stack?.length === 0 ? 'Empty' : 'Not empty');
-                
-                sendResponse({ success: true });
-                log('Stack cleared successfully from popup request');
+                try {
+                    const verifyResult = await chrome.storage.local.get('stack');
+                    log('Stack status after message clear:', verifyResult.stack?.length === 0 ? 'Empty' : 'Not empty');
+                    sendResponse({ success: true });
+                    log('Stack cleared successfully from popup request');
+                } catch (error) {
+                    log('Error verifying clear operation:', error.message);
+                    sendResponse({ success: false, error: error.message });
+                }
             })
             .catch(error => {
                 console.error('[AI Stacks BG] Error clearing stack from popup:', error);
                 sendResponse({ success: false, error: error.message });
             });
-        return true; // Will respond asynchronously
+        return true; // IMPORTANT: Indicates async response
     }
 });
 
@@ -336,17 +339,23 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 chrome.runtime.onConnect.addListener((port) => {
     log('New connection from:', port.name);
     
-    port.onMessage.addListener(async (message) => {
+    const messageHandler = async (message) => {
         try {
             if (message.action === 'addToStack') {
                 const success = await addToStack(message.item);
-                port.postMessage({ success, error: success ? null : 'Failed to add item to stack' });
+                if (!chrome.runtime.lastError) {
+                    port.postMessage({ success, error: success ? null : 'Failed to add item to stack' });
+                }
             }
         } catch (error) {
             console.error('[AI Stacks BG] Message handling error:', error);
-            port.postMessage({ success: false, error: error.message });
+            if (!chrome.runtime.lastError) {
+                port.postMessage({ success: false, error: error.message });
+            }
         }
-    });
+    };
+    
+    port.onMessage.addListener(messageHandler);
 });
 
 log('Background service worker started.');
