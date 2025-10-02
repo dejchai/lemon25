@@ -1,7 +1,7 @@
 // background.js
 
 // Configuration
-const MAX_STACK_SIZE = 100;
+const MAX_STACK_SIZE = 10;
 
 // Debug logging
 function log(...args) {
